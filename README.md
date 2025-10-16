@@ -145,17 +145,31 @@ src/
    cp .env.example .env
    ```
 
-4. **Update `.env` with your BFF URL**:
-   ```
-   VITE_API_BASE_URL=http://localhost:8080/api
-   ```
-
-5. **Start development server**:
+4. **Start development server**:
    ```bash
    npm run dev
    ```
 
-6. **Open http://localhost:5173**
+5. **Open http://localhost:5173**
+
+   The template runs in **mock mode** by default (no backend needed). You'll see a working dashboard with sample data.
+
+### Connecting to Your BFF
+
+When you're ready to connect to a real backend:
+
+1. **Update `.env`**:
+   ```bash
+   VITE_API_BASE_URL=http://your-bff-url/api
+   VITE_MOCK_MODE=false  # Disable mock mode
+   ```
+
+2. **Restart the dev server**:
+   ```bash
+   npm run dev
+   ```
+
+The template will now make real API calls to your BFF instead of using mock data.
 
 ### Working with Claude Code
 

@@ -10,12 +10,20 @@
 import apiClient from './api-client';
 import type { User, LoginRequest, LoginResponse } from '@/types/user.types';
 import type { ApiResponse, PageResponse } from '@/types/api.types';
+import { MOCK_CONFIG } from '@/config/mock.config';
+import { mockCurrentUser, mockUsers, mockLoginResponse, simulateDelay } from './mock/user.mock';
 
 export const userApi = {
   /**
    * Get current authenticated user
    */
   getCurrentUser: async (): Promise<User> => {
+    // Mock mode for development without backend
+    if (MOCK_CONFIG.enabled) {
+      await simulateDelay();
+      return mockCurrentUser;
+    }
+
     const response = await apiClient.get<ApiResponse<User>>('/users/me');
     return response.data.data;
   },
@@ -24,6 +32,13 @@ export const userApi = {
    * Get user by ID
    */
   getUserById: async (id: string): Promise<User> => {
+    if (MOCK_CONFIG.enabled) {
+      await simulateDelay();
+      const user = mockUsers.find((u) => u.id === id);
+      if (!user) throw new Error('User not found');
+      return user;
+    }
+
     const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
     return response.data.data;
   },
@@ -32,6 +47,17 @@ export const userApi = {
    * Get all users with pagination
    */
   getUsers: async (page: number = 0, size: number = 10): Promise<PageResponse<User>> => {
+    if (MOCK_CONFIG.enabled) {
+      await simulateDelay();
+      return {
+        content: mockUsers.slice(page * size, (page + 1) * size),
+        totalElements: mockUsers.length,
+        totalPages: Math.ceil(mockUsers.length / size),
+        size,
+        number: page,
+      };
+    }
+
     const response = await apiClient.get<ApiResponse<PageResponse<User>>>('/users', {
       params: { page, size },
     });
@@ -42,6 +68,15 @@ export const userApi = {
    * Login user
    */
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+    if (MOCK_CONFIG.enabled) {
+      await simulateDelay();
+      // Simple mock validation
+      if (credentials.email && credentials.password) {
+        return mockLoginResponse;
+      }
+      throw new Error('Invalid credentials');
+    }
+
     const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', credentials);
     return response.data.data;
   },
@@ -50,6 +85,11 @@ export const userApi = {
    * Logout user
    */
   logout: async (): Promise<void> => {
+    if (MOCK_CONFIG.enabled) {
+      await simulateDelay();
+      return;
+    }
+
     await apiClient.post('/auth/logout');
   },
 
@@ -57,6 +97,13 @@ export const userApi = {
    * Update user
    */
   updateUser: async (id: string, data: Partial<User>): Promise<User> => {
+    if (MOCK_CONFIG.enabled) {
+      await simulateDelay();
+      const user = mockUsers.find((u) => u.id === id);
+      if (!user) throw new Error('User not found');
+      return { ...user, ...data };
+    }
+
     const response = await apiClient.put<ApiResponse<User>>(`/users/${id}`, data);
     return response.data.data;
   },
@@ -65,6 +112,11 @@ export const userApi = {
    * Delete user
    */
   deleteUser: async (id: string): Promise<void> => {
+    if (MOCK_CONFIG.enabled) {
+      await simulateDelay();
+      return;
+    }
+
     await apiClient.delete(`/users/${id}`);
   },
 };
